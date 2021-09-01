@@ -18,15 +18,14 @@ namespace FG
             public TileBase tile;
             public int cost;
             public int distance;
-            public TileBase parent;
-            public int x;
-            public int y;
+            public Vector2Int parent;
+            public Vector2Int pos;
             public bool visited;
         }
 
         private void Setdistance(Customtile subject)
         {
-            subject.cost = Mathf.Abs(goal.x - subject.x) + Mathf.Abs(goal.y - subject.y);
+            subject.distance = Mathf.Abs(goal.pos.x - subject.pos.x) + Mathf.Abs(goal.pos.y - subject.pos.y);
         }
 
         private void Addneighbour(Customtile subject)
@@ -53,9 +52,18 @@ namespace FG
                         tilequeue.RemoveAt(c);
                     }
 
-                if (active.x == goal.x && active.y == goal.y)
+                if (active.pos.x == goal.pos.x && active.pos.y == goal.pos.y)
                     ;//return
 
+                if (active.pos.x + 1 < 14 && tilewalkable[active.pos.y, active.pos.x + 1].tile != null)
+                {
+                    if (tilewalkable[active.pos.y, active.pos.x + 1].visited)
+                        continue;
+                    for(int c = 0; c < tilequeue.Count; c++)
+                    {
+                        
+                    }
+                }
 
             }
 
@@ -76,20 +84,20 @@ namespace FG
                     if (tiles[i].name == "Start")
                     {
                         start.tile = tiles[i];
-                        start.x = x;
-                        start.y = y;
+                        start.pos.x = x;
+                        start.pos.y = y;
                     }
                     if (tiles[i].name == "Goal")
                     {
                         goal.tile = tiles[i];
-                        goal.x = x;
-                        goal.y = y;
+                        goal.pos.x = x;
+                        goal.pos.y = y;
                     }
 
                     tilewalkable[y, x].tile = tiles[i];
-                    tilewalkable[y, x].x = x;
-                    tilewalkable[y, x].y = y;
-                    tilewalkable[y, x].distance = Mathf.Abs(goal.x - tilewalkable[y, x].x + goal.y - tilewalkable[y, x].y);
+                    tilewalkable[y, x].pos.x = x;
+                    tilewalkable[y, x].pos.y = y;
+                    Setdistance(tilewalkable[y, x]);
                 }
             Setdistance(start);
             tilequeue.Add(start);
