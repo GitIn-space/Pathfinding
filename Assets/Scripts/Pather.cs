@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -11,62 +12,116 @@ namespace FG
         [HideInInspector] private Customtile start;
         [HideInInspector] private Customtile goal;
         [HideInInspector] private List<Customtile> tilequeue = new List<Customtile>();
-        [HideInInspector] private List<Customtile> tilevisited = new List<Customtile>();
 
-        [HideInInspector] public struct Customtile
+        public class Customtile
         {
-            public TileBase tile;
+            public Vector2Int pos;
+            public int costdistance;
             public int cost;
             public int distance;
-            public Vector2Int parent;
-            public Vector2Int pos;
-            public bool visited;
+            public Customtile Parent;
+
+            public Customtile()
+            {
+            }
+            public Customtile(int x, int y)
+            {
+                pos.x = x;
+                pos.y = y;
+            }
         }
 
-        private void Setdistance(Customtile subject)
+        private void Setdistance(Customtile subject, Customtile target)
         {
-            subject.distance = Mathf.Abs(goal.pos.x - subject.pos.x) + Mathf.Abs(goal.pos.y - subject.pos.y);
+            subject.distance = Mathf.Abs(subject.pos.x - goal.pos.x) + Mathf.Abs(subject.pos.y - goal.pos.y);
         }
 
-        private void Addneighbour(Customtile subject)
+        private List<Customtile> GetWalkableAdjacentSquares(int x, int y)
         {
-            ;
-            //cost: parent+1
-            //distance: neighbour -> goal
+            List<Customtile> proposedLocations = new List<Customtile>()
+            {
+                new Customtile(x, y - 1),
+                new Customtile(x, y + 1),
+                new Customtile(x - 1, y),
+                new Customtile(x + 1, y),
+            };
+
+            return proposedLocations.Where(l => tilewalkable[l.pos.y, l.pos.x].pos != null).ToList();
+        }
+
+        static int ComputeHScore(Customtile subject, Customtile target)
+        {
+            return Mathf.Abs(target.pos.x - subject.pos.x) + Mathf.Abs(target.pos.y - subject.pos.y);
         }
 
         public List<Customtile> Astar()
         {
-            List<Customtile> path = new List<Customtile>();
+            Customtile current = null;
+            var openList = new List<Customtile>();
+            var closedList = new List<Customtile>();
+            int g = 0;
 
-            Customtile active;
+            // start by adding the original position to the open list
+            openList.Add(start);
 
-            while(tilequeue.Count > 0)
+            while (openList.Count > 0)
             {
-                active = tilequeue[0];
-                for (int c = 1; c < tilequeue.Count; c++)
-                    if (tilequeue[c].distance < active.distance)
-                    {
-                        active = tilequeue[c];
-                        tilevisited.Add(active);
-                        tilequeue.RemoveAt(c);
-                    }
+                // get the square with the lowest F score
+                var lowest = openList.Min(l => l.costdistance);
+                current = openList.First(l => l.costdistance == lowest);
 
-                if (active.pos.x == goal.pos.x && active.pos.y == goal.pos.y)
-                    ;//return
+                // add the current square to the closed list
+                closedList.Add(current);
 
-                if (active.pos.x + 1 < 14 && tilewalkable[active.pos.y, active.pos.x + 1].tile != null)
+                // remove it from the open list
+                openList.Remove(current);
+
+                // if we added the destination to the closed list, we've found a path
+                if (closedList.FirstOrDefault(l => l.pos.x == goal.pos.x && l.pos.y == goal.pos.y) != null)
+                    break;
+
+                List<Customtile> adjacentSquares = GetWalkableAdjacentSquares(current.pos.x, current.pos.y);
+                g++;
+
+                foreach (Customtile adjacentSquare in adjacentSquares)
                 {
-                    if (tilewalkable[active.pos.y, active.pos.x + 1].visited)
+                    // if this adjacent square is already in the closed list, ignore it
+                    if (closedList.FirstOrDefault(l => l.pos.x == adjacentSquare.pos.x
+                            && l.pos.y == adjacentSquare.pos.y) != null)
                         continue;
-                    for(int c = 0; c < tilequeue.Count; c++)
+
+                    // if it's not in the open list...
+                    if (openList.FirstOrDefault(l => l.pos.x == adjacentSquare.pos.x
+                            && l.pos.y == adjacentSquare.pos.y) == null)
                     {
-                        
+                        // compute its score, set the parent
+                        adjacentSquare.cost = g;
+                        adjacentSquare.distance = ComputeHScore(adjacentSquare, goal);
+                        adjacentSquare.costdistance = adjacentSquare.cost + adjacentSquare.distance;
+                        adjacentSquare.Parent = current;
+
+                        // and add it to the open list
+                        openList.Insert(0, adjacentSquare);
+                    }
+                    else
+                    {
+                        // test if using the current G score makes the adjacent square's F score
+                        // lower, if yes update the parent because it means it's a better path
+                        if (g + adjacentSquare.distance < adjacentSquare.costdistance)
+                        {
+                            adjacentSquare.cost = g;
+                            adjacentSquare.costdistance = adjacentSquare.cost + adjacentSquare.distance;
+                            adjacentSquare.Parent = current;
+                        }
                     }
                 }
-
             }
-
+            List<Customtile> path = new List<Customtile>();
+            while(current.pos.x != start.pos.x && current.pos.y != start.pos.y)
+            {
+                path.Add(current);
+                current = current.Parent;
+            }
             return path;
         }
 
@@ -83,23 +138,16 @@ namespace FG
 
                     if (tiles[i].name == "Start")
                     {
-                        start.tile = tiles[i];
-                        start.pos.x = x;
-                        start.pos.y = y;
+                        start = new Customtile(x, y);
                     }
                     if (tiles[i].name == "Goal")
                     {
-                        goal.tile = tiles[i];
-                        goal.pos.x = x;
-                        goal.pos.y = y;
+                        goal = new Customtile(x, y);
                     }
 
-                    tilewalkable[y, x].tile = tiles[i];
-                    tilewalkable[y, x].pos.x = x;
-                    tilewalkable[y, x].pos.y = y;
-                    Setdistance(tilewalkable[y, x]);
+                    tilewalkable[y, x] = new Customtile(x, y);
                 }
-            Setdistance(start);
+            Setdistance(start, goal);
             tilequeue.Add(start);
         }
     }
