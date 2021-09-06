@@ -5,31 +5,33 @@ using UnityEngine.Tilemaps;
 
 namespace FG
 {
+    public class Customtile
+    {
+        public Vector2Int pos;
+        public int costdistance;
+        public int cost;
+        public int distance;
+        public Customtile Parent;
+        public TileBase tile;
+
+        public Customtile()
+        {
+            pos = new Vector2Int(-1, -1);
+        }
+        public Customtile(int x, int y)
+        {
+            pos.x = x;
+            pos.y = y;
+        }
+    }
+
     public class Pather : MonoBehaviour
     {
         [HideInInspector] private Tilemap tilemap;
         [HideInInspector] private Customtile[,] tilewalkable = new Customtile[10, 14];
         [HideInInspector] private Customtile start;
         [HideInInspector] private Customtile goal;
-        [HideInInspector] private List<Customtile> tilequeue = new List<Customtile>();
-
-        public class Customtile
-        {
-            public Vector2Int pos;
-            public int costdistance;
-            public int cost;
-            public int distance;
-            public Customtile Parent;
-
-            public Customtile()
-            {
-            }
-            public Customtile(int x, int y)
-            {
-                pos.x = x;
-                pos.y = y;
-            }
-        }
+        private List<Customtile> tilequeue = new List<Customtile>();
 
         private void Setdistance(Customtile subject, Customtile target)
         {
@@ -38,15 +40,17 @@ namespace FG
 
         private List<Customtile> GetWalkableAdjacentSquares(int x, int y)
         {
-            List<Customtile> proposedLocations = new List<Customtile>()
-            {
-                new Customtile(x, y - 1),
-                new Customtile(x, y + 1),
-                new Customtile(x - 1, y),
-                new Customtile(x + 1, y),
-            };
+            List<Customtile> proposedLocations = new List<Customtile>();
+            if (y - 1 >= 0)
+                proposedLocations.Add(new Customtile(x, y - 1));
+            if (y + 1 < 10)
+                proposedLocations.Add(new Customtile(x, y + 1));
+            if (x - 1 >= 0)
+                proposedLocations.Add(new Customtile(x - 1, y));
+            if (x + 1 < 14)
+                proposedLocations.Add(new Customtile(x + 1, y));
 
-            return proposedLocations.Where(l => tilewalkable[l.pos.y, l.pos.x].pos != null).ToList();
+            return proposedLocations.Where(l => tilewalkable[l.pos.y, l.pos.x] != null).ToList();
         }
 
         static int ComputeHScore(Customtile subject, Customtile target)
@@ -56,9 +60,11 @@ namespace FG
 
         public List<Customtile> Astar()
         {
+            Debug.Log(start.pos + "\n");
+
             Customtile current = null;
-            var openList = new List<Customtile>();
-            var closedList = new List<Customtile>();
+            List<Customtile> openList = new List<Customtile>();
+            List<Customtile> closedList = new List<Customtile>();
             int g = 0;
 
             // start by adding the original position to the open list
@@ -67,7 +73,7 @@ namespace FG
             while (openList.Count > 0)
             {
                 // get the square with the lowest F score
-                var lowest = openList.Min(l => l.costdistance);
+                int lowest = openList.Min(l => l.costdistance);
                 current = openList.First(l => l.costdistance == lowest);
 
                 // add the current square to the closed list
@@ -134,18 +140,24 @@ namespace FG
                 for (int x = 0; x < 14; x++, i++)
                 {
                     if (tiles[i].name == "Wall")
+                    {
+                        tilewalkable[y, x] = null;
                         continue;
+                    }
 
                     if (tiles[i].name == "Start")
                     {
                         start = new Customtile(x, y);
+                        start.tile = tiles[i];
                     }
                     if (tiles[i].name == "Goal")
                     {
                         goal = new Customtile(x, y);
+                        goal.tile = tiles[i];
                     }
 
                     tilewalkable[y, x] = new Customtile(x, y);
+                    tilewalkable[y, x].tile = tiles[i];
                 }
             Setdistance(start, goal);
             tilequeue.Add(start);
