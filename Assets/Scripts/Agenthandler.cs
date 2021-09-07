@@ -18,7 +18,7 @@ namespace FG
             {
                 GameObject go = agentprefab[0];
 
-                agents.Add(Instantiate(go, new Vector3(-50f, -50f, 0), Quaternion.Euler(0f, 0f, 0f)).GetComponent<Agent>());
+                agents.Add(Instantiate(go, new Vector3(0f, 0f, 0), Quaternion.Euler(0f, 0f, 0f)).GetComponent<Agent>());
                 agents[agents.Count - 1].Givepath(pathfinder.Astar());
             }
         }
