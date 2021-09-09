@@ -8,6 +8,9 @@ namespace FG
     {
         [HideInInspector] private List<Vector3> path;
         [HideInInspector] private Coroutine pathrutine;
+        [HideInInspector] private State state;
+        [HideInInspector] private Agenthandler handler;
+        [HideInInspector] private int id;
 
         [SerializeField] private float movementspeed = 1.0f;
 
@@ -18,19 +21,22 @@ namespace FG
                 transform.position = path[c];
                 yield return new WaitForSeconds(movementspeed);
             }
-            Destroy(gameObject);
         }
 
-        public void Givepath(List<Vector3> path)
+        public void Setid(int id)
         {
-            this.path = path;
-
-            pathrutine = StartCoroutine(Move());
+            this.id = id;
         }
 
         private void OnDisable()
         {
             StopCoroutine(pathrutine);
+        }
+
+        private void Awake()
+        {
+            state = new Huntstate();
+            handler = GetComponentInParent<Agenthandler>();
         }
     }
 }
