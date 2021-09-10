@@ -4,14 +4,18 @@ namespace FG
     {
         public Huntstate() : base()
         {
+        }
+
+        public Huntstate(int health, int ammo) : base(health, ammo)
+        {
             //get path to nearest enemy
         }
 
-        public override State Execute()
+        public override State Execute(ref int trigger)
         {
-            //path to enemy
             //if enemy in los -> fightstate
             //if hp/ammo low -> lootstate
+            return this;
         }
     }
 }

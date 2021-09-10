@@ -14,26 +14,16 @@ namespace FG
 
         public List<Vector3> Requestpath(int id)
         {
-            Vector3 temp = Vector3.zero;
+            Vector3 closest = GameObject.Find("Distantobject").transform.position;
 
             for(int c = 0; c < agents.Count; c++)
             {
-                if(c != id)
-                    if(Mathf.Abs(agents[id].transform.position - agents[c].transform.position))
+                if (c != id)
+                    if (Vector3.Distance(agents[id].transform.position, agents[c].transform.position) <
+                        Vector3.Distance(closest, agents[c].transform.position))
+                        closest = agents[c].transform.position;
             }
-
-            return pathfinder.Astar(agents[id].transform);
-        }
-
-        private void Update()
-        {
-            /*if(Input.GetKeyDown(KeyCode.S))
-            {
-                GameObject go = agentprefab[0];
-
-                agents.Add(Instantiate(go, new Vector3(0f, 0f, 0), Quaternion.Euler(0f, 0f, 0f)).GetComponent<Agent>());
-                agents[agents.Count - 1].Givepath(pathfinder.Astar());
-            }*/
+            return pathfinder.Astar(agents[id].transform.position, closest);
         }
 
         private void Awake()

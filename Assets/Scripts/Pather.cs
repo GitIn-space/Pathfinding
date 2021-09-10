@@ -8,9 +8,9 @@ namespace FG
     public class Customtile
     {
         public Vector2Int pos;
-        public int costdistance;
+        public float costdistance;
         public int cost;
-        public int distance;
+        public float distance;
         public Customtile Parent;
         public TileBase tile;
 
@@ -33,8 +33,8 @@ namespace FG
         [HideInInspector] private List<Customtile> starts;
         [HideInInspector] private Customtile goal;
         [HideInInspector] private BoundsInt bounds;
-        [HideInInspector] private float offx;
-        [HideInInspector] private float offy;
+        [HideInInspector] private int offx;
+        [HideInInspector] private int offy;
         [HideInInspector] private int gridlengthx;
         [HideInInspector] private int gridlengthy;
 
@@ -43,25 +43,35 @@ namespace FG
             List<Customtile> directions = new List<Customtile>();
             if (y - 1 >= 0)
                 directions.Add(new Customtile(x, y - 1));
-            if (y + 1 < 10)
+            if (y + 1 < gridlengthy)
                 directions.Add(new Customtile(x, y + 1));
             if (x - 1 >= 0)
                 directions.Add(new Customtile(x - 1, y));
-            if (x + 1 < 14)
+            if (x + 1 < gridlengthx)
                 directions.Add(new Customtile(x + 1, y));
 
             return directions.Where(l => grid[l.pos.x, l.pos.y] != null).ToList();
         }
 
-        private int Setdistance(Vector2Int subject, Vector2Int target)
+        private float Getdistance(Vector2Int subject, Vector2Int target)
         {
-            return Mathf.Abs(target.x - subject.x) + Mathf.Abs(target.y - subject.y);
+            return Vector2Int.Distance(subject, target);
         }
 
-        private void addtolist(ref List<Vector3> list, Vector3Int vector)
+        private Vector3 Addoffset(Vector3 pos)
         {
-            list.Add(tilemap.CellToWorld(vector));
-            list[list.Count - 1] -= new Vector3(offx, offy, 0);
+            return pos - new Vector3Int(offx, offy, 0);
+        }
+
+        private Vector3Int Removeoffset(Vector3Int pos)
+        {
+            return pos + new Vector3Int(offx, offy, 0);
+        }
+
+        private void Addtolist(ref List<Vector3> list, Vector3Int vector)
+        {
+            list.Add(tilemap.CellToWorld(new Vector3Int(vector.x, vector.y, 0)));
+            list[list.Count - 1] = Addoffset(list[list.Count - 1]);
         }
 
         public List<Vector3> Astar(Vector3 location, Vector3 target)
@@ -69,13 +79,15 @@ namespace FG
             Customtile start = new Customtile();
             Customtile goal = new Customtile();
 
-            Vector3Int temp = tilemap.WorldToCell(location);
-            start.pos.x = temp.x;
-            start.pos.y = temp.y;
+            Vector3Int worldcell = tilemap.WorldToCell(location);
+            worldcell = Removeoffset(new Vector3Int(worldcell.x, worldcell.y, 0));
+            start.pos.x = worldcell.x;
+            start.pos.y = worldcell.y;
 
-            temp = tilemap.WorldToCell(target);
-            goal.pos.x = temp.x;
-            goal.pos.y = temp.y;
+            worldcell = tilemap.WorldToCell(target);
+            worldcell = Removeoffset(new Vector3Int(worldcell.x, worldcell.y, 0));
+            goal.pos.x = worldcell.x;
+            goal.pos.y = worldcell.y;
 
             Customtile current = null;
             List<Customtile> open = new List<Customtile>();
@@ -86,7 +98,7 @@ namespace FG
 
             while (open.Count > 0)
             {
-                int lowest = open.Min(l => l.costdistance);
+                float lowest = open.Min(l => l.costdistance);
                 current = open.First(l => l.costdistance == lowest);
 
                 closed.Add(current);
@@ -108,7 +120,7 @@ namespace FG
                             && l.pos.y == neighbourtile.pos.y) == null)
                     {
                         neighbourtile.cost = cost;
-                        neighbourtile.distance = Setdistance(neighbourtile.pos, goal.pos);
+                        neighbourtile.distance = Getdistance(neighbourtile.pos, goal.pos);
                         neighbourtile.costdistance = neighbourtile.cost + neighbourtile.distance;
                         neighbourtile.Parent = current;
 
@@ -128,10 +140,11 @@ namespace FG
             List<Vector3> path = new List<Vector3>();
             while(current.pos != start.pos)
             {
-                addtolist(ref path, new Vector3Int(current.pos.x, current.pos.y, 0));
+                Addtolist(ref path, new Vector3Int(current.pos.x, current.pos.y, 0));
                 current = current.Parent;
             }
-            addtolist(ref path, new Vector3Int(start.pos.x, start.pos.y, 0));
+            Addtolist(ref path, new Vector3Int(start.pos.x, start.pos.y, 0));
+            path.Reverse();
             return path;
         }
 
@@ -140,10 +153,7 @@ namespace FG
             List<Vector3> startreturn = new List<Vector3>();
 
             for(int c = 0; c < starts.Count; c++)
-            {
-                startreturn.Add(tilemap.CellToWorld(new Vector3Int(starts[c].pos.x, starts[c].pos.y, 0)));
-                startreturn[c] -= new Vector3(offx, offy, 0);
-            }
+                Addtolist(ref startreturn, new Vector3Int(starts[c].pos.x, starts[c].pos.y, 0));
             return startreturn;
         }
 
@@ -156,8 +166,8 @@ namespace FG
             gridlengthx = Mathf.Abs(bounds.xMin - bounds.xMax);
             gridlengthy = Mathf.Abs(bounds.yMin - bounds.yMax);
             grid = new Customtile[gridlengthx, gridlengthy];
-            offx = (Mathf.Abs((bounds.xMin - bounds.xMax) + 1) / 2) + 0.5f;
-            offy = (Mathf.Abs((bounds.yMin - bounds.yMax) + 1) / 2) - 1.5f;
+            offx = (Mathf.Abs((bounds.xMin - bounds.xMax) + 1) / 2) + 1;
+            offy = (Mathf.Abs((bounds.yMin - bounds.yMax) + 1) / 2) - 1;
             TileBase[] tiles = tilemap.GetTilesBlock(bounds);
             for (int y = 0, i = 0; y < gridlengthy; y++)
                 for (int x = 0; x < gridlengthx; x++, i++)

@@ -10,8 +10,15 @@ namespace FG
             health = 100;
             ammo = 10;
         }
-        abstract public State Execute();
-        public void Exit(State state)
+
+        public State(int health, int ammo)
+        {
+            this.health = 100;
+            this.ammo = 10;
+        }
+
+        abstract public State Execute(ref int trigger);
+        public void Visionupdate()
         {
         }
     }
