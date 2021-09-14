@@ -21,12 +21,18 @@ namespace FG
             yield return new WaitForSeconds(initialwait);
 
             state = state.Execute(ref pathtrigger);
-            if(pathtrigger != 0)
-                path = handler.Requestpath(id);
+            if (pathtrigger != 0)
+            {
+                path = handler.Requestpath(id, pathtrigger);
+                pathtrigger = 0;
+            }
 
             for (int c = 0; c < path.Count; c++)
             {
                 transform.position = path[c];
+
+                if (state.GetType() == typeof(Huntstate))
+                    c--;
 
                 if (c == path.Count - 1)
                 {
@@ -36,6 +42,16 @@ namespace FG
 
                 yield return new WaitForSeconds(movementspeed);
             }
+        }
+
+        public void Receivevisual(Vector3 target)
+        {
+
+        }
+
+        public void Takedamage(int damage)
+        {
+            state.Takedamage(damage);
         }
 
         public void Setid(int id)

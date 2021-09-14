@@ -18,8 +18,10 @@ namespace FG
         }
 
         abstract public State Execute(ref int trigger);
-        public void Visionupdate()
+
+        public void Takedamage(int damage)
         {
+            health -= damage;
         }
     }
 }

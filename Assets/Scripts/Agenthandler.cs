@@ -11,19 +11,45 @@ namespace FG
         [HideInInspector] private Pather pathfinder;
 
         [SerializeField] private GameObject[] agentprefab;
+        [SerializeField] private int visionrange = 5;
 
-        public List<Vector3> Requestpath(int id)
+        public List<Vector3> Requestpath(int id, int pathtrigger = 0)
         {
-            Vector3 closest = GameObject.Find("Distantobject").transform.position;
+            Vector3 target = GameObject.Find("Distantobject").transform.position;
 
-            for(int c = 0; c < agents.Count; c++)
+            if (pathtrigger == 0)
+            {
+                for (int c = 0; c < agents.Count; c++)
+                {
+                    if (c != id)
+                        if (Vector3.Distance(agents[id].transform.position, agents[c].transform.position) <
+                            Vector3.Distance(target, agents[c].transform.position))
+                            target = agents[c].transform.position;
+                }
+            }
+            else if (pathtrigger == 1)
+            {
+                //get path to ammo/health
+            }
+            else if(pathtrigger == 3)
+            {
+                //empty path
+            }
+            return pathfinder.Astar(agents[id].transform.position, target);
+        }
+
+        public void Checkvision(int id)
+        {
+            List<Vector3> target = new List<Vector3>();
+            for (int c = 0; c < agents.Count; c++)
             {
                 if (c != id)
                     if (Vector3.Distance(agents[id].transform.position, agents[c].transform.position) <
-                        Vector3.Distance(closest, agents[c].transform.position))
-                        closest = agents[c].transform.position;
+                        visionrange)
+                        target.Add(agents[c].transform.position);
             }
-            return pathfinder.Astar(agents[id].transform.position, closest);
+            //raycast
+            //return closest in vision
         }
 
         private void Awake()
