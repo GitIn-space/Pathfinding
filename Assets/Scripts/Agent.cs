@@ -11,7 +11,7 @@ namespace FG
         [HideInInspector] private State state;
         [HideInInspector] private Agenthandler handler;
         [HideInInspector] private int id;
-        [HideInInspector] private int pathtrigger;
+        [HideInInspector] private int pathtrigger = 1;
 
         [SerializeField] private float movementspeed = 1.0f;
         [SerializeField] private float initialwait = 1.0f;
@@ -29,10 +29,8 @@ namespace FG
 
             for (int c = 0; c < path.Count; c++)
             {
-                transform.position = path[c];
-
-                if (state.GetType() == typeof(Huntstate))
-                    c--;
+                if (state.GetType() != typeof(Fightstate))
+                    transform.position = path[c];
 
                 if (c == path.Count - 1)
                 {
@@ -46,7 +44,7 @@ namespace FG
 
         public void Receivevisual(Vector3 target)
         {
-
+            state = state.Visualcontact();
         }
 
         public void Takedamage(int damage)

@@ -23,5 +23,10 @@ namespace FG
         {
             health -= damage;
         }
+
+        public State Visualcontact()
+        {
+            return new Fightstate(health, ammo);
+        }
     }
 }

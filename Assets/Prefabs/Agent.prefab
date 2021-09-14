@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -5575345366938609425}
   m_Layer: 0
   m_Name: Agent
-  m_TagString: Untagged
+  m_TagString: Agent
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -97,6 +97,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementspeed: 1
+  initialwait: 1
 --- !u!61 &-5575345366938609425
 BoxCollider2D:
   m_ObjectHideFlags: 0
