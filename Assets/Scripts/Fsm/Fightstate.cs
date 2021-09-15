@@ -24,11 +24,14 @@ namespace FG
             }
             else if(false)
             {
+                return new Huntstate(health, ammo);
+            }
+            else
+            {
                 //shoot nearest enemy within los
                 return this;
             }
-            else
-                return new Huntstate(health, ammo);
+                
         }
     }
 }

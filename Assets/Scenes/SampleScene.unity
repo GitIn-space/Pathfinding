@@ -166,9 +166,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2041884b63b2b2847a0a9e8771df38ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentprefab:
-  - {fileID: 6083935324383123423, guid: f7804a209a2416f408b68064d0a4a628, type: 3}
+  agentprefab: {fileID: 6083935324383123423, guid: f7804a209a2416f408b68064d0a4a628, type: 3}
   visionrange: 7
+  visionupdaterate: 0.5
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

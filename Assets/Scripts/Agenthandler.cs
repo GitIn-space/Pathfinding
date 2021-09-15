@@ -9,9 +9,11 @@ namespace FG
     {
         [HideInInspector] private List<Agent> agents = new List<Agent>();
         [HideInInspector] private Pather pathfinder;
+        [HideInInspector] private Coroutine visionroutine;
 
-        [SerializeField] private GameObject[] agentprefab;
-        [SerializeField] private float visionrange = 5f;
+        [SerializeField] private GameObject agentprefab;
+        [SerializeField] private float visionrange = 5.0f;
+        [SerializeField] private float visionupdaterate = 1.0f;
 
         public List<Vector3> Requestpath(int id, int pathtrigger = 0)
         {
@@ -34,37 +36,42 @@ namespace FG
             return pathfinder.Astar(agents[id].transform.position, target);
         }
 
-        public void Checkvision()
+        public IEnumerator Checkvision()
         {
-            List<Vector2Int> sightpotential = new List<Vector2Int>();
-            for (int c = 0; c < agents.Count - 1; c++)
-                for (int q = c + 1; q < agents.Count; q++)
-                    if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
-                    {
-                        sightpotential.Add(new Vector2Int(c, q));
-                        Debug.DrawLine(agents[c].transform.position, agents[q].transform.position, Color.red, 1f);
-                    }
-
-            for (int c = 0; c < sightpotential.Count; c++)
+            while (true)
             {
-                agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = false;
+                List<Vector2Int> sightpotential = new List<Vector2Int>();
+                for (int c = 0; c < agents.Count - 1; c++)
+                    for (int q = c + 1; q < agents.Count; q++)
+                        if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
+                        {
+                            sightpotential.Add(new Vector2Int(c, q));
+                            Debug.DrawRay(agents[c].transform.position, (agents[q].transform.position - agents[c].transform.position).normalized, Color.red, 1f);
+                        }
 
-                RaycastHit2D hit = Physics2D.Raycast(agents[sightpotential[c].x].transform.position,
-                    agents[sightpotential[c].y].transform.position, visionrange);
+                RaycastHit2D hit;
+                Vector3 direction;
 
-                agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = true;
-
-                if (hit.collider)
+                for (int c = 0; c < sightpotential.Count; c++)
                 {
-                    Debug.Log(hit.collider.tag);
-                    if ((hit.collider.CompareTag("Agent")))
+                    agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = false;
+
+                    direction = (agents[sightpotential[c].y].transform.position - agents[sightpotential[c].x].transform.position).normalized;
+                    hit = Physics2D.Raycast(agents[sightpotential[c].x].transform.position, direction, visionrange);
+
+                    agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = true;
+
+                    if (hit.collider)
                     {
-                        agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
-                        agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
-                        Debug.DrawLine(agents[sightpotential[c].x].transform.position, agents[sightpotential[c].y].transform.position, Color.cyan, 60f);
-                        //remove from lateupdate, make 1s coprocess
+                        if ((hit.collider.CompareTag("Agent")))
+                        {
+                            agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
+                            agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
+                            Debug.DrawRay(agents[sightpotential[c].x].transform.position, (agents[sightpotential[c].y].transform.position - agents[sightpotential[c].x].transform.position).normalized, Color.cyan, 60f);
+                        }
                     }
                 }
+                yield return new WaitForSeconds(visionupdaterate);
             }
         }
 
@@ -79,14 +86,15 @@ namespace FG
 
             for (int c = 0; c < starts.Count; c++)
             {
-                agents.Add(Instantiate(agentprefab[0], starts[c], Quaternion.Euler(0f, 0f, 0f)).GetComponent<Agent>());
+                agents.Add(Instantiate(agentprefab, starts[c], Quaternion.Euler(0f, 0f, 0f)).GetComponent<Agent>());
                 agents[c].Setid(c);
             }
+            visionroutine = StartCoroutine("Checkvision");
         }
 
-        private void LateUpdate()
+        private void OnDisable()
         {
-            Checkvision();
+            StopCoroutine(visionroutine);
         }
     }
 }

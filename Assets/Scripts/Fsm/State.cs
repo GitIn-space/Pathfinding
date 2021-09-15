@@ -28,5 +28,14 @@ namespace FG
         {
             return new Fightstate(health, ammo);
         }
+
+        public bool Shoot()
+        {
+            if (ammo > 0)
+                ammo--;
+            else
+                return false;
+            return true;
+        }
     }
 }

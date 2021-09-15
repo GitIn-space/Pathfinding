@@ -98,6 +98,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementspeed: 1
   initialwait: 1
+  bulletprefab: {fileID: 8121178923750572703, guid: 0bd25dcda121a7442b5a7051d288ccc3, type: 3}
+  bulletforce: 1000
 --- !u!61 &-5575345366938609425
 BoxCollider2D:
   m_ObjectHideFlags: 0

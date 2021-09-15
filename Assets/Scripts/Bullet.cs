@@ -6,21 +6,31 @@ namespace FG
 {
     public class Bullet : MonoBehaviour
     {
+        [HideInInspector] private Coroutine activateroutine;
+
         [SerializeField] private int damage = 10;
+        [SerializeField] private float activatedelay = 0.1f;
 
         private void Destroybullet()
         {
             Destroy(gameObject);
         }
 
-        private void OnCollisionEnter2D(Collision2D collision)
+        private IEnumerator Collideractivate()
         {
-            if (!collision.collider.CompareTag("Agent") || !collision.collider.CompareTag("Wall"))
-                return;
+            yield return new WaitForSeconds(activatedelay);
 
-            if (collision.collider.CompareTag("Agent"))
+            GetComponent<CircleCollider2D>().enabled = true;
+        }
+
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            /*if (!collision.CompareTag("Agent") || !collision.CompareTag("Wall"))
+                return;*/
+
+            if (collision.CompareTag("Agent"))
             {
-                Agent enemy = collision.collider.GetComponent<Agent>();
+                Agent enemy = collision.GetComponent<Agent>();
                 if (!ReferenceEquals(enemy, null))
                 {
                     enemy.Takedamage(damage);
@@ -36,6 +46,16 @@ namespace FG
         private void OnBecameInvisible()
         {
             Destroy(gameObject);
+        }
+
+        private void OnDisable()
+        {
+            StopCoroutine(activateroutine);
+        }
+
+        private void Awake()
+        {
+            activateroutine = StartCoroutine("Collideractivate");
         }
     }
 }

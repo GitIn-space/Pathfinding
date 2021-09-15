@@ -12,23 +12,36 @@ namespace FG
         [HideInInspector] private Agenthandler handler;
         [HideInInspector] private int id;
         [HideInInspector] private int pathtrigger = 1;
+        [HideInInspector] private Vector3 target;
 
         [SerializeField] private float movementspeed = 1.0f;
         [SerializeField] private float initialwait = 1.0f;
+        [SerializeField] private GameObject bulletprefab;
+        [SerializeField] private int bulletforce = 1;
 
         private IEnumerator Agentupdate()
         {
             yield return new WaitForSeconds(initialwait);
 
-            state = state.Execute(ref pathtrigger);
-            if (pathtrigger != 0)
-            {
-                path = handler.Requestpath(id, pathtrigger);
-                pathtrigger = 0;
-            }
-
             for (int c = 0; c < path.Count; c++)
             {
+                state = state.Execute(ref pathtrigger);
+
+                if (state.GetType() == typeof(Fightstate))
+                {
+                    if (state.Shoot())
+                    {
+                        Bullet bullet = Instantiate(bulletprefab, transform.position, Quaternion.Euler(0f, 0f, 0f)).GetComponent<Bullet>();
+                        bullet.GetComponent<Rigidbody2D>().AddForce((target - transform.position).normalized * bulletforce, ForceMode2D.Force);
+                    }
+                }
+
+                if (pathtrigger != 0)
+                {
+                    path = handler.Requestpath(id, pathtrigger);
+                    pathtrigger = 0;
+                }
+
                 if (state.GetType() != typeof(Fightstate))
                     transform.position = path[c];
 
@@ -44,6 +57,11 @@ namespace FG
 
         public void Receivevisual(Vector3 target)
         {
+            if (Vector3.Distance(transform.position, target) < Vector3.Distance(transform.position, this.target))
+            {
+                this.target = target;
+            }
+
             state = state.Visualcontact();
         }
 
@@ -66,6 +84,7 @@ namespace FG
         {
             path = new List<Vector3>();
             state = new Huntstate();
+            target = GameObject.Find("Distantobject").transform.position;
         }
 
         private void Start()
