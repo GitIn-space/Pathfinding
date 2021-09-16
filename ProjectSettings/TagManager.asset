@@ -7,6 +7,8 @@ TagManager:
   - Wall
   - Agent
   - Bullet
+  - Ammo
+  - Health
   layers:
   - Default
   - TransparentFX

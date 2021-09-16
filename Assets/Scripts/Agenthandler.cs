@@ -19,7 +19,7 @@ namespace FG
         {
             Vector3 target = GameObject.Find("Distantobject").transform.position;
 
-            if (pathtrigger == 0)
+            if (pathtrigger == 1)
             {
                 for (int c = 0; c < agents.Count; c++)
                 {
@@ -29,9 +29,25 @@ namespace FG
                             target = agents[c].transform.position;
                 }
             }
-            else if (pathtrigger == 1)
+            else if (pathtrigger == 2)
             {
-                //get path to ammo/health
+                List<Vector3> ammos = pathfinder.Getammolocations();
+                for (int c = 0; c < ammos.Count; c++)
+                {
+                    if (Vector3.Distance(agents[id].transform.position, ammos[c]) <
+                        Vector3.Distance(agents[id].transform.position, target))
+                        target = ammos[c];
+                }
+            }
+            else if (pathtrigger == 3)
+            {
+                List<Vector3> healths = pathfinder.Gethealthlocations();
+                for (int c = 0; c < healths.Count; c++)
+                {
+                    if (Vector3.Distance(agents[id].transform.position, healths[c]) <
+                        Vector3.Distance(agents[id].transform.position, target))
+                        target = healths[c];
+                }
             }
             return pathfinder.Astar(agents[id].transform.position, target);
         }
@@ -44,10 +60,7 @@ namespace FG
                 for (int c = 0; c < agents.Count - 1; c++)
                     for (int q = c + 1; q < agents.Count; q++)
                         if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
-                        {
                             sightpotential.Add(new Vector2Int(c, q));
-                            Debug.DrawRay(agents[c].transform.position, (agents[q].transform.position - agents[c].transform.position).normalized, Color.red, 1f);
-                        }
 
                 RaycastHit2D hit;
                 Vector3 direction;
@@ -67,12 +80,20 @@ namespace FG
                         {
                             agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
                             agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
-                            Debug.DrawRay(agents[sightpotential[c].x].transform.position, (agents[sightpotential[c].y].transform.position - agents[sightpotential[c].x].transform.position).normalized, Color.cyan, 60f);
                         }
                     }
                 }
                 yield return new WaitForSeconds(visionupdaterate);
             }
+        }
+
+        public void Dead(int id)
+        {
+            for(int c = 0; c < agents.Count; c++)
+                if(c != id)
+                    if(agents[c].transform.position != null)
+                        agents[c].Targetdown(agents[id].transform.position);
+            agents.RemoveAt(id);
         }
 
         private void Awake()

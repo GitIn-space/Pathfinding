@@ -11,19 +11,20 @@ namespace FG
         [HideInInspector] private State state;
         [HideInInspector] private Agenthandler handler;
         [HideInInspector] private int id;
-        [HideInInspector] private int pathtrigger = 1;
+        [HideInInspector] private int pathtrigger = 0;
         [HideInInspector] private Vector3 target;
+        [HideInInspector] private bool retarget = false;
 
         [SerializeField] private float movementspeed = 1.0f;
-        [SerializeField] private float initialwait = 1.0f;
+        //[SerializeField] private float initialwait = 1.0f;
         [SerializeField] private GameObject bulletprefab;
         [SerializeField] private int bulletforce = 1;
 
         private IEnumerator Agentupdate()
         {
-            yield return new WaitForSeconds(initialwait);
+            //yield return new WaitForSeconds(initialwait);
 
-            for (int c = 0; c < path.Count; c++)
+            for (int c = 0; c < path.Count;)
             {
                 state = state.Execute(ref pathtrigger);
 
@@ -40,34 +41,58 @@ namespace FG
                 {
                     path = handler.Requestpath(id, pathtrigger);
                     pathtrigger = 0;
+                    retarget = true;
                 }
-
-                if (state.GetType() != typeof(Fightstate))
-                    transform.position = path[c];
 
                 if (c == path.Count - 1)
                 {
-                    path = handler.Requestpath(id);
-                    c = 0;
+                    path = handler.Requestpath(id, 1);
+                    retarget = true;
                 }
 
                 yield return new WaitForSeconds(movementspeed);
+
+                if (retarget)
+                {
+                    c = 0;
+                    retarget = false;
+                }
+
+                if (state.GetType() != typeof(Fightstate))
+                {
+                    transform.position = path[c];
+                    c++;
+                }
             }
         }
 
         public void Receivevisual(Vector3 target)
         {
             if (Vector3.Distance(transform.position, target) < Vector3.Distance(transform.position, this.target))
-            {
                 this.target = target;
-            }
 
-            state = state.Visualcontact();
+            if(state.GetType() != typeof(Lootstate))
+                state = state.Visualcontact();
+        }
+
+        public void Targetdown(Vector3 target)
+        {
+            //if (target == this.target)
+            {
+                state = state.Targetdown();
+                path = handler.Requestpath(id, 1);
+                retarget = true;
+            }
         }
 
         public void Takedamage(int damage)
         {
-            state.Takedamage(damage);
+            if (state.Takedamage(damage) <= 0)
+            {
+                handler.Dead(id);
+                StopCoroutine(updateroutine);
+                Destroy(gameObject);
+            }
         }
 
         public void Setid(int id)
@@ -90,7 +115,7 @@ namespace FG
         private void Start()
         {
             handler = GameObject.Find("Agenthandler").GetComponent<Agenthandler>();
-            path = handler.Requestpath(id);
+            path = handler.Requestpath(id, 1);
             updateroutine = StartCoroutine("Agentupdate");
         }
     }

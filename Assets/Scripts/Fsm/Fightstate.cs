@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace FG
 {
     public class Fightstate : State
@@ -12,26 +14,29 @@ namespace FG
 
         public override State Execute(ref int trigger)
         {
-            if (health <= 20)
+            if (health <= 50)
             {
-                trigger = 1;
+                trigger = 2;
                 return new Lootstate(health, ammo);
             }
             else if (ammo == 0)
             {
-                trigger = 1;
+                trigger = 3;
                 return new Lootstate(health, ammo);
-            }
-            else if(false)
-            {
-                return new Huntstate(health, ammo);
             }
             else
             {
-                //shoot nearest enemy within los
                 return this;
             }
-                
+        }
+
+        public override bool Shoot()
+        {
+            if (ammo > 0)
+                ;// ammo--;
+            else
+                return false;
+            return true;
         }
     }
 }

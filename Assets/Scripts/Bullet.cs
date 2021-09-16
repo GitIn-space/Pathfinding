@@ -25,9 +25,6 @@ namespace FG
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            /*if (!collision.CompareTag("Agent") || !collision.CompareTag("Wall"))
-                return;*/
-
             if (collision.CompareTag("Agent"))
             {
                 Agent enemy = collision.GetComponent<Agent>();
@@ -39,7 +36,7 @@ namespace FG
                 else
                     Destroybullet();
             }
-            else
+            else if(collision.CompareTag("Wall"))
                 Destroybullet();
         }
 

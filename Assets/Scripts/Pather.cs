@@ -16,6 +16,12 @@ namespace FG
         [HideInInspector] private int offy;
         [HideInInspector] private int gridlengthx;
         [HideInInspector] private int gridlengthy;
+        [HideInInspector] private List<Customtile> ammos;
+        [HideInInspector] private List<Customtile> healths;
+
+        [SerializeField] private GameObject ammoprefab;
+        [SerializeField] private GameObject healthprefab;
+        [SerializeField] private Tile floor;
 
         private List<Customtile> Getneighbours(int x, int y)
         {
@@ -136,9 +142,29 @@ namespace FG
             return startreturn;
         }
 
+        public List<Vector3> Getammolocations()
+        {
+            List<Vector3> ammoreturn = new List<Vector3>();
+
+            for (int c = 0; c < ammos.Count; c++)
+                Addtolist(ref ammoreturn, new Vector3Int(ammos[c].pos.x, ammos[c].pos.y, 0));
+            return ammoreturn;
+        }
+
+        public List<Vector3> Gethealthlocations()
+        {
+            List<Vector3> healthreturn = new List<Vector3>();
+
+            for (int c = 0; c < healths.Count; c++)
+                Addtolist(ref healthreturn, new Vector3Int(healths[c].pos.x, healths[c].pos.y, 0));
+            return healthreturn;
+        }
+
         private void Awake()
         {
             starts = new List<Customtile>();
+            ammos = new List<Customtile>();
+            healths = new List<Customtile>();
             tilemap = GetComponent<Tilemap>();
             tilemap.CompressBounds();
             bounds = tilemap.cellBounds;
@@ -156,14 +182,26 @@ namespace FG
                         grid[x, y] = null;
                         continue;
                     }
-                    if (tiles[i].name == "Start")
-                    {
+                    else if (tiles[i].name == "Start")
                         starts.Add(new Customtile(x, y, tiles[i]));
-                    }
-                    if (tiles[i].name == "Goal")
-                    {
+
+                    else if (tiles[i].name == "Goal")
                         goal = new Customtile(x, y, tiles[i]);
+
+                    else if (tiles[i].name == "Ammo")
+                    {
+                        /*Instantiate(ammoprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
+                        ammos.Add(new Customtile(x, y, tiles[i]));*/
+                        tilemap.SetTile(Vector3Int.FloorToInt(Addoffset(new Vector3(x, y, 0))), floor);
                     }
+
+                    else if (tiles[i].name == "Health")
+                    {
+                        /*Instantiate(healthprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
+                        healths.Add(new Customtile(x, y, tiles[i]));*/
+                        tilemap.SetTile(Vector3Int.FloorToInt(Addoffset(new Vector3(x, y, 0))), floor);
+                    }
+
                     grid[x, y] = new Customtile(x, y, tiles[i]);
                 }
         }

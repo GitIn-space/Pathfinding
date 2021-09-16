@@ -13,29 +13,31 @@ namespace FG
 
         public State(int health, int ammo)
         {
-            this.health = 100;
-            this.ammo = 10;
+            this.health = health;
+            this.ammo = ammo;
         }
 
         abstract public State Execute(ref int trigger);
 
-        public void Takedamage(int damage)
+        public virtual int Takedamage(int damage)
         {
             health -= damage;
+            return health;
         }
 
-        public State Visualcontact()
+        public virtual State Visualcontact()
         {
             return new Fightstate(health, ammo);
         }
 
-        public bool Shoot()
+        public virtual State Targetdown()
         {
-            if (ammo > 0)
-                ammo--;
-            else
-                return false;
-            return true;
+            return new Huntstate(health, ammo);
+        }
+
+        public virtual bool Shoot()
+        {
+            return false;
         }
     }
 }
