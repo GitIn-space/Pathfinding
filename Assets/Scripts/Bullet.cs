@@ -31,7 +31,6 @@ namespace FG
                 if (!ReferenceEquals(enemy, null))
                 {
                     enemy.Takedamage(damage);
-                    Destroybullet();
                 }
                 else
                     Destroybullet();

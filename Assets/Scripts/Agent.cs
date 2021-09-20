@@ -29,13 +29,11 @@ namespace FG
                 state = state.Execute(ref pathtrigger);
 
                 if (state.GetType() == typeof(Fightstate))
-                {
                     if (state.Shoot())
                     {
                         Bullet bullet = Instantiate(bulletprefab, transform.position, Quaternion.Euler(0f, 0f, 0f)).GetComponent<Bullet>();
                         bullet.GetComponent<Rigidbody2D>().AddForce((target - transform.position).normalized * bulletforce, ForceMode2D.Force);
                     }
-                }
 
                 if (pathtrigger != 0)
                 {
@@ -54,7 +52,7 @@ namespace FG
 
                 if (retarget)
                 {
-                    c = 0;
+                    c = 1;
                     retarget = false;
                 }
 
@@ -77,7 +75,7 @@ namespace FG
 
         public void Targetdown(Vector3 target)
         {
-            //if (target == this.target)
+            if (this.target == target || path[path.Count - 1] == target)
             {
                 state = state.Targetdown();
                 path = handler.Requestpath(id, 1);
@@ -91,7 +89,7 @@ namespace FG
             {
                 handler.Dead(id);
                 StopCoroutine(updateroutine);
-                Destroy(gameObject);
+                gameObject.SetActive(false);
             }
         }
 

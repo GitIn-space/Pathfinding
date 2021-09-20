@@ -10,6 +10,7 @@ namespace FG
         [HideInInspector] private List<Agent> agents = new List<Agent>();
         [HideInInspector] private Pather pathfinder;
         [HideInInspector] private Coroutine visionroutine;
+        [HideInInspector] private bool dodelete = false;
 
         [SerializeField] private GameObject agentprefab;
         [SerializeField] private float visionrange = 5.0f;
@@ -23,7 +24,7 @@ namespace FG
             {
                 for (int c = 0; c < agents.Count; c++)
                 {
-                    if (c != id)
+                    if (agents[c] != null && c != id)
                         if (Vector3.Distance(agents[id].transform.position, agents[c].transform.position) <
                             Vector3.Distance(target, agents[c].transform.position))
                             target = agents[c].transform.position;
@@ -59,8 +60,12 @@ namespace FG
                 List<Vector2Int> sightpotential = new List<Vector2Int>();
                 for (int c = 0; c < agents.Count - 1; c++)
                     for (int q = c + 1; q < agents.Count; q++)
-                        if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
-                            sightpotential.Add(new Vector2Int(c, q));
+                        if (agents[c] != null && agents[q] != null)
+                            if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
+                            {
+                                sightpotential.Add(new Vector2Int(c, q));
+                                //Debug.DrawLine(agents[c].transform.position, agents[q].transform.position, Color.red, 1f);
+                            }
 
                 RaycastHit2D hit;
                 Vector3 direction;
@@ -76,8 +81,9 @@ namespace FG
 
                     if (hit.collider)
                     {
-                        if ((hit.collider.CompareTag("Agent")))
+                        if (hit.collider.CompareTag("Agent"))
                         {
+                            //Debug.DrawRay(agents[sightpotential[c].x].transform.position, direction, Color.cyan, 3f);
                             agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
                             agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
                         }
@@ -93,7 +99,7 @@ namespace FG
                 if(c != id)
                     if(agents[c].transform.position != null)
                         agents[c].Targetdown(agents[id].transform.position);
-            agents.RemoveAt(id);
+            dodelete = true;
         }
 
         private void Awake()
@@ -116,6 +122,14 @@ namespace FG
         private void OnDisable()
         {
             StopCoroutine(visionroutine);
+        }
+
+        private void LateUpdate()
+        {
+            if (dodelete)
+                for (int c = 0; c < agents.Count; c++)
+                    if (agents[c] != null && !agents[c].isActiveAndEnabled)
+                        Destroy(agents[c].gameObject);
         }
     }
 }
