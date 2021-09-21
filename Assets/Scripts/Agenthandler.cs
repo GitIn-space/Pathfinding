@@ -64,7 +64,7 @@ namespace FG
                             if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
                             {
                                 sightpotential.Add(new Vector2Int(c, q));
-                                //Debug.DrawLine(agents[c].transform.position, agents[q].transform.position, Color.red, 1f);
+                                Debug.DrawLine(agents[c].transform.position, agents[q].transform.position, Color.red, 1f);
                             }
 
                 RaycastHit2D hit;
@@ -83,7 +83,7 @@ namespace FG
                     {
                         if (hit.collider.CompareTag("Agent"))
                         {
-                            //Debug.DrawRay(agents[sightpotential[c].x].transform.position, direction, Color.cyan, 3f);
+                            Debug.DrawRay(agents[sightpotential[c].x].transform.position, direction, Color.cyan, 3f);
                             agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
                             agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
                         }

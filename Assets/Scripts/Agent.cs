@@ -66,6 +66,7 @@ namespace FG
 
         public void Receivevisual(Vector3 target)
         {
+            Debug.Log(Vector3.Distance(transform.position, target) + " " + Vector3.Distance(transform.position, this.target));
             if (Vector3.Distance(transform.position, target) < Vector3.Distance(transform.position, this.target))
                 this.target = target;
 
@@ -75,11 +76,12 @@ namespace FG
 
         public void Targetdown(Vector3 target)
         {
-            if (this.target == target || path[path.Count - 1] == target)
+            //if (this.target == target || path[path.Count - 1] == target)
             {
                 state = state.Targetdown();
                 path = handler.Requestpath(id, 1);
                 retarget = true;
+                this.target = GameObject.Find("Distantobject").transform.position;
             }
         }
 
