@@ -16,14 +16,11 @@ namespace FG
         [HideInInspector] private bool retarget = false;
 
         [SerializeField] private float movementspeed = 1.0f;
-        //[SerializeField] private float initialwait = 1.0f;
         [SerializeField] private GameObject bulletprefab;
         [SerializeField] private int bulletforce = 1;
 
         private IEnumerator Agentupdate()
         {
-            //yield return new WaitForSeconds(initialwait);
-
             for (int c = 0; c < path.Count;)
             {
                 state = state.Execute(ref pathtrigger);
@@ -66,7 +63,6 @@ namespace FG
 
         public void Receivevisual(Vector3 target)
         {
-            Debug.Log(Vector3.Distance(transform.position, target) + " " + Vector3.Distance(transform.position, this.target));
             if (Vector3.Distance(transform.position, target) < Vector3.Distance(transform.position, this.target))
                 this.target = target;
 
@@ -76,12 +72,12 @@ namespace FG
 
         public void Targetdown(Vector3 target)
         {
-            //if (this.target == target || path[path.Count - 1] == target)
+            if (this.target == target)
             {
                 state = state.Targetdown();
                 path = handler.Requestpath(id, 1);
                 retarget = true;
-                this.target = GameObject.Find("Distantobject").transform.position;
+                this.target = handler.Getfartarget();
             }
         }
 
@@ -109,13 +105,13 @@ namespace FG
         {
             path = new List<Vector3>();
             state = new Huntstate();
-            target = GameObject.Find("Distantobject").transform.position;
         }
 
         private void Start()
         {
             handler = GameObject.Find("Agenthandler").GetComponent<Agenthandler>();
             path = handler.Requestpath(id, 1);
+            target = handler.Getfartarget();
             updateroutine = StartCoroutine("Agentupdate");
         }
     }

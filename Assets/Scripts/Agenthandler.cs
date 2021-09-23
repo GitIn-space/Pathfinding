@@ -18,7 +18,7 @@ namespace FG
 
         public List<Vector3> Requestpath(int id, int pathtrigger = 0)
         {
-            Vector3 target = GameObject.Find("Distantobject").transform.position;
+            Vector3 target = Getfartarget();
 
             if (pathtrigger == 1)
             {
@@ -62,10 +62,7 @@ namespace FG
                     for (int q = c + 1; q < agents.Count; q++)
                         if (agents[c] != null && agents[q] != null)
                             if (Vector3.Distance(agents[c].transform.position, agents[q].transform.position) < visionrange)
-                            {
                                 sightpotential.Add(new Vector2Int(c, q));
-                                Debug.DrawLine(agents[c].transform.position, agents[q].transform.position, Color.red, 1f);
-                            }
 
                 RaycastHit2D hit;
                 Vector3 direction;
@@ -83,7 +80,6 @@ namespace FG
                     {
                         if (hit.collider.CompareTag("Agent"))
                         {
-                            Debug.DrawRay(agents[sightpotential[c].x].transform.position, direction, Color.cyan, 3f);
                             agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
                             agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
                         }
@@ -97,9 +93,14 @@ namespace FG
         {
             for(int c = 0; c < agents.Count; c++)
                 if(c != id)
-                    if(agents[c].transform.position != null)
+                    if(agents[c] != null)
                         agents[c].Targetdown(agents[id].transform.position);
             dodelete = true;
+        }
+
+        public Vector3 Getfartarget()
+        {
+            return GameObject.Find("Distantobject").transform.position;
         }
 
         private void Awake()
