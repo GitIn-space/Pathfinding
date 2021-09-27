@@ -11,10 +11,13 @@ namespace FG
         [HideInInspector] private Pather pathfinder;
         [HideInInspector] private Coroutine visionroutine;
         [HideInInspector] private bool dodelete = false;
+        [HideInInspector] private Vector3 distance;
+        [HideInInspector] private float offset = 0.2f;
 
         [SerializeField] private GameObject agentprefab;
         [SerializeField] private float visionrange = 5.0f;
         [SerializeField] private float visionupdaterate = 1.0f;
+        [SerializeField] private GameObject bulletprefab;
 
         public List<Vector3> Requestpath(int id, int pathtrigger = 0)
         {
@@ -32,22 +35,22 @@ namespace FG
             }
             else if (pathtrigger == 2)
             {
-                List<Vector3> ammos = pathfinder.Getammolocations();
-                for (int c = 0; c < ammos.Count; c++)
-                {
-                    if (Vector3.Distance(agents[id].transform.position, ammos[c]) <
-                        Vector3.Distance(agents[id].transform.position, target))
-                        target = ammos[c];
-                }
-            }
-            else if (pathtrigger == 3)
-            {
                 List<Vector3> healths = pathfinder.Gethealthlocations();
                 for (int c = 0; c < healths.Count; c++)
                 {
                     if (Vector3.Distance(agents[id].transform.position, healths[c]) <
                         Vector3.Distance(agents[id].transform.position, target))
                         target = healths[c];
+                }
+            }
+            else if (pathtrigger == 3)
+            {
+                List<Vector3> ammos = pathfinder.Getammolocations();
+                for (int c = 0; c < ammos.Count; c++)
+                {
+                    if (Vector3.Distance(agents[id].transform.position, ammos[c]) <
+                        Vector3.Distance(agents[id].transform.position, target))
+                        target = ammos[c];
                 }
             }
             return pathfinder.Astar(agents[id].transform.position, target);
@@ -72,18 +75,21 @@ namespace FG
                     agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = false;
 
                     direction = (agents[sightpotential[c].y].transform.position - agents[sightpotential[c].x].transform.position).normalized;
-                    hit = Physics2D.Raycast(agents[sightpotential[c].x].transform.position, direction, visionrange);
+                    Vector3 tangent = new Vector3(-direction.y, direction.x, 0);
+                    hit = Physics2D.Raycast(agents[sightpotential[c].x].transform.position + tangent * offset, direction, visionrange);
+
+                    Debug.DrawRay(agents[sightpotential[c].x].transform.position + tangent * offset, direction, Color.cyan, 1f);
+                    Debug.DrawRay(agents[sightpotential[c].x].transform.position + tangent * -offset, direction, Color.red, 1f);
 
                     agents[sightpotential[c].x].GetComponent<Collider2D>().enabled = true;
 
                     if (hit.collider)
-                    {
-                        if (hit.collider.CompareTag("Agent"))
+                        if (hit.collider.CompareTag("Agent") &&
+                            Physics2D.Raycast(agents[sightpotential[c].x].transform.position + tangent * -offset, direction, visionrange).collider.CompareTag("Agent"))
                         {
                             agents[sightpotential[c].x].Receivevisual(agents[sightpotential[c].y].transform.position);
                             agents[sightpotential[c].y].Receivevisual(agents[sightpotential[c].x].transform.position);
                         }
-                    }
                 }
                 yield return new WaitForSeconds(visionupdaterate);
             }
@@ -100,12 +106,14 @@ namespace FG
 
         public Vector3 Getfartarget()
         {
-            return GameObject.Find("Distantobject").transform.position;
+            return distance;
         }
 
         private void Awake()
         {
             pathfinder = GetComponentInParent<Pather>();
+
+            offset = bulletprefab.transform.localScale.x;
         }
 
         private void Start()
@@ -118,6 +126,8 @@ namespace FG
                 agents[c].Setid(c);
             }
             visionroutine = StartCoroutine("Checkvision");
+
+            distance = GameObject.Find("Distantobject").transform.position;
         }
 
         private void OnDisable()

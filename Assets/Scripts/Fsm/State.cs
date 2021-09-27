@@ -39,5 +39,13 @@ namespace FG
         {
             return false;
         }
+
+        public virtual void Consume(int type, int amount)
+        {
+            if (type == 0)
+                health += amount;
+            else if (type == 1)
+                ammo += amount;
+        }
     }
 }

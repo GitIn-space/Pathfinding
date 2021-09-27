@@ -65,12 +65,12 @@ namespace FG
             Customtile goal = new Customtile();
 
             Vector3Int worldcell = tilemap.WorldToCell(location);
-            worldcell = Removeoffset(new Vector3Int(worldcell.x, worldcell.y, 0));
+            worldcell = Removeoffset(worldcell);
             start.pos.x = worldcell.x;
             start.pos.y = worldcell.y;
 
             worldcell = tilemap.WorldToCell(target);
-            worldcell = Removeoffset(new Vector3Int(worldcell.x, worldcell.y, 0));
+            worldcell = Removeoffset(worldcell);
             goal.pos.x = worldcell.x;
             goal.pos.y = worldcell.y;
 
@@ -160,6 +160,15 @@ namespace FG
             return healthreturn;
         }
 
+        public void Removepickup(Vector3 location, int type)
+        {
+            Vector3 local = Removeoffset(tilemap.WorldToCell(location));
+            if (type == 0)
+                healths.RemoveAt(healths.FindIndex(l => l.pos.x == local.x && l.pos.y == local.y));
+            else if (type == 1)
+                ammos.RemoveAt(ammos.FindIndex(l => l.pos.x == local.x && l.pos.y == local.y));
+        }
+
         private void Awake()
         {
             starts = new List<Customtile>();
@@ -188,17 +197,17 @@ namespace FG
                     else if (tiles[i].name == "Goal")
                         goal = new Customtile(x, y, tiles[i]);
 
-                    else if (tiles[i].name == "Ammo")
+                    else if (tiles[i].name == "Health")
                     {
-                        /*Instantiate(ammoprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
-                        ammos.Add(new Customtile(x, y, tiles[i]));*/
+                        Instantiate(healthprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
+                        healths.Add(new Customtile(x, y, tiles[i]));
                         tilemap.SetTile(Vector3Int.FloorToInt(Addoffset(new Vector3(x, y, 0))), floor);
                     }
 
-                    else if (tiles[i].name == "Health")
+                    else if (tiles[i].name == "Ammo")
                     {
-                        /*Instantiate(healthprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
-                        healths.Add(new Customtile(x, y, tiles[i]));*/
+                        Instantiate(ammoprefab, Addoffset(new Vector3(x, y, 0)), Quaternion.Euler(0f, 0f, 0f));
+                        ammos.Add(new Customtile(x, y, tiles[i]));
                         tilemap.SetTile(Vector3Int.FloorToInt(Addoffset(new Vector3(x, y, 0))), floor);
                     }
 

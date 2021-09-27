@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3ea5d5083c2d1c42a9c9c821d181127, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 100
+  damage: 10
   activatedelay: 0.05
 --- !u!212 &8121178923750572701
 SpriteRenderer:

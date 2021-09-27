@@ -29,11 +29,8 @@ namespace FG
             {
                 Agent enemy = collision.GetComponent<Agent>();
                 if (!ReferenceEquals(enemy, null))
-                {
                     enemy.Takedamage(damage);
-                }
-                else
-                    Destroybullet();
+                Destroybullet();
             }
             else if(collision.CompareTag("Wall"))
                 Destroybullet();

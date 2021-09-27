@@ -39,7 +39,7 @@ namespace FG
                     retarget = true;
                 }
 
-                if (c == path.Count - 1)
+                if (c >= path.Count - 1)
                 {
                     path = handler.Requestpath(id, 1);
                     retarget = true;
@@ -63,7 +63,7 @@ namespace FG
 
         public void Receivevisual(Vector3 target)
         {
-            if (Vector3.Distance(transform.position, target) < Vector3.Distance(transform.position, this.target))
+            if (target != transform.position)
                 this.target = target;
 
             if(state.GetType() != typeof(Lootstate))
@@ -72,7 +72,7 @@ namespace FG
 
         public void Targetdown(Vector3 target)
         {
-            if (this.target == target)
+            //if (this.target == target)
             {
                 state = state.Targetdown();
                 path = handler.Requestpath(id, 1);
@@ -89,6 +89,11 @@ namespace FG
                 StopCoroutine(updateroutine);
                 gameObject.SetActive(false);
             }
+        }
+
+        public void Consume(int type, int amount)
+        {
+            state.Consume(type, amount);
         }
 
         public void Setid(int id)

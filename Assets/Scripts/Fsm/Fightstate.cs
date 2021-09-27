@@ -33,7 +33,7 @@ namespace FG
         public override bool Shoot()
         {
             if (ammo > 0)
-                ;// ammo--;
+                ammo--;
             else
                 return false;
             return true;

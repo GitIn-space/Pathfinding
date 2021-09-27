@@ -14,7 +14,11 @@ namespace FG
 
         public override State Execute(ref int trigger)
         {
-            //if health/ammo satisfied -> huntstate
+            if (health >= 50 && ammo > 0)
+            {
+                trigger = 1;
+                return new Huntstate(health, ammo);
+            }
             return this;
         }
     }
